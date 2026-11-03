@@ -20,7 +20,7 @@ A high-performance Chrome / Brave / Edge Manifest V3 extension and companion loc
 ## 📂 Project Structure
 
 ```text
-folder1/
+YT-video-downloder-extension/
 ├── backend/                       # Local companion server (FastAPI + yt-dlp)
 │   ├── app.py                     # API server & download worker
 │   ├── requirements.txt           # Dependencies (yt-dlp, fastapi, uvicorn)
@@ -49,10 +49,10 @@ folder1/
 
 The local helper server performs the video stream downloading and FFmpeg audio/video muxing.
 
-In your terminal, run:
+In your terminal, navigate to the project directory and run:
 
 ```bash
-cd /home/aximsoft/Documents/folder1
+cd YT-video-downloder-extension
 ./backend/run_backend.sh
 ```
 
@@ -62,7 +62,7 @@ You will see:
 ```text
 ✅ FFmpeg detected: ffmpeg version ...
 🚀 Starting server at http://127.0.0.1:8765
-Downloads will be saved to: /home/aximsoft/Downloads
+Downloads will be saved to: ~/Downloads
 ```
 
 > **Note**: Keep this terminal open while you download videos.
@@ -77,9 +77,9 @@ Downloads will be saved to: /home/aximsoft/Downloads
    * **Edge**: `edge://extensions`
 2. In the top-right corner, turn ON **"Developer mode"**.
 3. Click the **"Load unpacked"** button in the top-left corner.
-4. Browse to and select the `extension` folder:
+4. Browse to and select the `extension` folder inside the project:
    ```text
-   /home/aximsoft/Documents/folder1/extension
+   /path/to/YT-video-downloder-extension/extension
    ```
 5. The **"YouTube Video & Audio Downloader"** extension is now installed!
 6. *(Recommended)* Click the puzzle piece icon in the browser toolbar and pin the downloader icon for easy access.
