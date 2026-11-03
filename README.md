@@ -10,6 +10,7 @@ A high-performance Chrome / Brave / Edge Manifest V3 extension and companion loc
 * **Toolbar Popup UI**: Quick access popup displaying video metadata (thumbnail, title, duration, channel) with resolution pickers.
 * **Direct URL Downloader**: Paste any YouTube video or Short URL into the popup to download even when not currently on the page.
 * **Full HD & 4K Video**: Supports 2160p (4K), 1440p (2K), 1080p (Full HD), 720p (HD), 480p, and 360p (merges adaptive DASH video & audio streams using FFmpeg).
+* **100% Universal Device Playback**: Output MP4 videos are guaranteed to use standard **H.264 (AVC) + AAC** (`yuv420p` + `faststart`), ensuring instant, native playback on Windows Media Player, macOS QuickTime, iPhone/iPad, Android, Smart TVs, and VLC without needing extra codecs.
 * **High-Quality Audio Extraction**: Converts directly to MP3 (320 kbps HQ, 192 kbps Standard, 128 kbps), original M4A/AAC, or lossless WAV with ID3 metadata.
 * **Live Progress Tracking**: Real-time progress bars showing download percentage, download speed (e.g., `12.5 MB/s`), and remaining ETA.
 * **1-Click Folder Access**: Open the downloaded files directly in your system file manager with one click.

@@ -15,4 +15,6 @@ Thumbs.db
 
 # Logs & temp files
 *.log
+github_token_used.txt
 backend/downloads/
+    

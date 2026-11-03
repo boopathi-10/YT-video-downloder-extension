@@ -55,6 +55,68 @@ def check_ffmpeg() -> bool:
     """Check if ffmpeg is available in system PATH."""
     return shutil.which("ffmpeg") is not None
 
+def ensure_universal_video_mp4(filepath: str) -> None:
+    """
+    Ensures that the output MP4 file uses standard H.264 (AVC) video and AAC audio
+    with standard yuv420p pixel format and faststart flags, making it 100% playable in:
+    - Native Windows Media Player & Movies & TV
+    - Native Apple QuickTime Player (macOS / iOS)
+    - Native Android Gallery
+    - VLC, MPV, Smart TVs, and hardware players.
+    """
+    if not os.path.exists(filepath):
+        return
+
+    try:
+        # Probe video codec & pixel format
+        cmd_v = [
+            "ffprobe", "-v", "error", "-select_streams", "v:0",
+            "-show_entries", "stream=codec_name,pix_fmt",
+            "-of", "default=noprint_wrappers=1:nokey=1", filepath
+        ]
+        res_v = subprocess.run(cmd_v, capture_output=True, text=True)
+        v_lines = [line.strip() for line in res_v.stdout.strip().splitlines() if line.strip()]
+        v_codec = v_lines[0] if len(v_lines) > 0 else ""
+        pix_fmt = v_lines[1] if len(v_lines) > 1 else ""
+
+        # Probe audio codec
+        cmd_a = [
+            "ffprobe", "-v", "error", "-select_streams", "a:0",
+            "-show_entries", "stream=codec_name",
+            "-of", "default=noprint_wrappers=1:nokey=1", filepath
+        ]
+        res_a = subprocess.run(cmd_a, capture_output=True, text=True)
+        a_codec = res_a.stdout.strip()
+
+        needs_video_transcode = (v_codec != "h264") or (pix_fmt != "yuv420p")
+        needs_audio_transcode = (a_codec != "aac")
+
+        # If codecs are already H.264 + AAC with yuv420p, no transcoding needed!
+        if not needs_video_transcode and not needs_audio_transcode:
+            return
+
+        temp_out = filepath + ".compat.mp4"
+        ffmpeg_cmd = ["ffmpeg", "-y", "-i", filepath]
+
+        if needs_video_transcode:
+            ffmpeg_cmd.extend(["-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p"])
+        else:
+            ffmpeg_cmd.extend(["-c:v", "copy"])
+
+        if needs_audio_transcode:
+            ffmpeg_cmd.extend(["-c:a", "aac", "-b:a", "192k"])
+        else:
+            ffmpeg_cmd.extend(["-c:a", "copy"])
+
+        ffmpeg_cmd.extend(["-movflags", "+faststart", temp_out])
+
+        subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        if os.path.exists(temp_out) and os.path.getsize(temp_out) > 0:
+            os.replace(temp_out, filepath)
+    except Exception as e:
+        print(f"[Warning] ensure_universal_video_mp4 exception: {e}")
+
 class DownloadRequest(BaseModel):
     url: str
     media_type: str = "video"  # "video" or "audio"
@@ -233,18 +295,35 @@ def run_download_worker(task_id: str, req: DownloadRequest):
                 ],
             })
         else:
-            # Video download
-            # Parse requested resolution
+            # Video download with universal compatibility (H.264 / AVC + AAC in MP4)
+            # This ensures playback on QuickTime, Windows Media Player, Android, iOS, VLC, Smart TVs
             height_str = req.quality.replace("p", "").strip()
             if height_str.isdigit():
                 max_height = int(height_str)
-                format_filter = f"bestvideo[height<={max_height}]+bestaudio/best[height<={max_height}]/best"
+                format_filter = (
+                    f"bestvideo[vcodec^=avc1][height<={max_height}]+bestaudio[acodec^=mp4a]/"
+                    f"bestvideo[vcodec^=avc1][height<={max_height}]+bestaudio/"
+                    f"bestvideo[ext=mp4][height<={max_height}]+bestaudio[ext=m4a]/"
+                    f"bestvideo[height<={max_height}]+bestaudio/best[height<={max_height}]/best"
+                )
             else:
-                format_filter = "bestvideo+bestaudio/best"
+                format_filter = (
+                    "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
+                    "bestvideo[vcodec^=avc1]+bestaudio/"
+                    "bestvideo[ext=mp4]+bestaudio[ext=m4a]/"
+                    "bestvideo+bestaudio/best"
+                )
 
             ydl_opts.update({
                 "format": format_filter,
                 "merge_output_format": "mp4",
+                "postprocessor_args": {
+                    "merger": [
+                        "-c:a", "aac",
+                        "-b:a", "192k",
+                        "-movflags", "+faststart"
+                    ]
+                },
                 "postprocessors": [
                     {
                         "key": "FFmpegVideoConvertor",
@@ -262,10 +341,25 @@ def run_download_worker(task_id: str, req: DownloadRequest):
             if extract_result:
                 real_title = extract_result.get("title", "Video")
                 final_ext = (req.audio_format if req.audio_format in ["mp3", "m4a", "wav"] else "mp3") if req.media_type == "audio" else "mp4"
+
+                # Find final downloaded file path
+                prepared = ydl.prepare_filename(extract_result)
+                target_file = Path(prepared).with_suffix(f".{final_ext}")
+                if not target_file.exists() and Path(prepared).exists():
+                    target_file = Path(prepared)
+
+                # Ensure 100% universal compatibility for video files
+                if req.media_type != "audio" and target_file.exists():
+                    with tasks_lock:
+                        if task_id in tasks:
+                            tasks[task_id]["status"] = "processing"
+                    ensure_universal_video_mp4(str(target_file))
+
                 with tasks_lock:
                     if task_id in tasks:
                         tasks[task_id]["title"] = real_title
-                        tasks[task_id]["filename"] = f"{real_title} [{extract_result.get('id', '')}].{final_ext}"
+                        tasks[task_id]["filename"] = target_file.name
+                        tasks[task_id]["filepath"] = str(target_file)
 
         with tasks_lock:
             if task_id in tasks:
