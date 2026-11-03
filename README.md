@@ -115,3 +115,11 @@ Downloaded media is saved to your operating system's default Downloads directory
 * **Windows**: `C:\Users\<Username>\Downloads`
 
 To change the default download directory, you can specify `DOWNLOAD_DIR` in `backend/app.py`.
+
+---
+
+## ⚖️ Disclaimer
+
+This project is intended for educational, research, and personal backup purposes only (e.g., archiving your own content, downloading public domain media, or saving content distributed under Creative Commons licenses).
+
+The developer does not encourage, endorse, or support the unauthorized downloading, distribution, or reproduction of copyrighted material. All trademarks, service marks, and company names are the property of their respective owners. Users are solely responsible for complying with applicable copyright laws and the terms of service of third-party platforms.
