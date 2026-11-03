@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Downloader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        <span class="brand-name">YT Downloader</span>
+      </div>
+      <div id="backend-status" class="status-indicator offline" title="Checking local helper...">
+        <span class="dot"></span>
+        <span class="status-text">Helper Offline</span>
+      </div>
+    </header>
+
+    <!-- Offline Alert Banner -->
+    <div id="offline-banner" class="offline-banner" style="display: none;">
+      <div class="banner-title">⚠️ Helper Server Offline</div>
+      <div class="banner-desc">High-quality 1080p/4K and MP3 extraction require the local helper.</div>
+      <div class="code-box">
+        <code>./backend/run_backend.sh</code>
+        <button id="copy-cmd-btn" title="Copy command">📋</button>
+      </div>
+    </div>
+
+    <!-- Active Video Card -->
+    <section id="video-card" class="video-card">
+      <div class="thumb-wrapper">
+        <img id="video-thumb" src="" alt="Thumbnail" />
+        <span id="video-duration" class="thumb-duration">--:--</span>
+      </div>
+      <div class="video-info">
+        <h4 id="video-title" class="video-title">Detecting YouTube video...</h4>
+        <p id="video-author" class="video-author">--</p>
+      </div>
+    </section>
+
+    <!-- Fallback URL Input (when not on a watch page) -->
+    <section id="url-input-section" class="url-input-section" style="display: none;">
+      <label for="custom-url-input">Paste YouTube Video URL:</label>
+      <div class="input-group">
+        <input type="text" id="custom-url-input" placeholder="https://www.youtube.com/watch?v=..." />
+        <button id="fetch-url-btn">Load</button>
+      </div>
+    </section>
+
+    <!-- Download Options Section -->
+    <section class="download-section">
+      <!-- Media Type Tabs -->
+      <div class="format-tabs">
+        <button id="tab-video" class="tab-btn active">📹 Video (MP4)</button>
+        <button id="tab-audio" class="tab-btn">🎵 Audio (MP3)</button>
+      </div>
+
+      <!-- Video Controls -->
+      <div id="video-controls" class="controls-panel">
+        <div class="form-group">
+          <label for="video-quality-select">Resolution:</label>
+          <select id="video-quality-select" class="styled-select">
+            <option value="1080p">1080p — Full HD (MP4)</option>
+            <option value="720p">720p — HD (MP4)</option>
+            <option value="480p">480p — Standard (MP4)</option>
+            <option value="360p">360p — Low / Fast (MP4)</option>
+            <option value="best">Best Available (Auto)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Audio Controls -->
+      <div id="audio-controls" class="controls-panel" style="display: none;">
+        <div class="form-group">
+          <label for="audio-format-select">Format & Quality:</label>
+          <select id="audio-format-select" class="styled-select">
+            <option value="mp3-320">MP3 — 320 kbps (High Quality)</option>
+            <option value="mp3-192" selected>MP3 — 192 kbps (Standard)</option>
+            <option value="mp3-128">MP3 — 128 kbps (Compact)</option>
+            <option value="m4a-best">M4A / AAC — Original Stream</option>
+            <option value="wav-best">WAV — Lossless Audio</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button id="download-btn" class="download-submit-btn">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        <span id="download-btn-text">Download Video</span>
+      </button>
+    </section>
+
+    <!-- Active Tasks / Queue Section -->
+    <section id="tasks-section" class="tasks-section">
+      <div class="tasks-header">
+        <span class="tasks-title">Downloads</span>
+        <button id="open-folder-btn" class="link-btn" title="Open system Downloads folder">
+          📂 Open Folder
+        </button>
+      </div>
+      <div id="tasks-list" class="tasks-list">
+        <div class="empty-tasks">No active downloads</div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="popup-footer">
+      <span>YouTube Video & Audio Downloader</span>
+      <span>v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

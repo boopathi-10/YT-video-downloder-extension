@@ -1,0 +1,329 @@
+/* YouTube In-Page Downloader Styling */
+
+/* Download Pill Button matching YouTube's native design */
+.ytdl-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 36px;
+  vertical-align: middle;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  user-select: none;
+  background-color: #ff0033;
+  color: #ffffff;
+  margin-right: 8px;
+  position: relative;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.ytdl-pill-btn:hover {
+  background-color: #cc0029;
+  transform: translateY(-1px);
+}
+
+.ytdl-pill-btn:active {
+  transform: translateY(0);
+}
+
+.ytdl-pill-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.ytdl-pill-btn .ytdl-arrow-icon {
+  margin-left: 2px;
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.ytdl-pill-btn.open .ytdl-arrow-icon {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu Modal */
+.ytdl-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 320px;
+  background: #ffffff;
+  color: #0f0f0f;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  z-index: 999999;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+  animation: ytdlFadeIn 0.15s ease-out;
+}
+
+/* YouTube Dark Mode Detection */
+html[dark] .ytdl-dropdown-menu,
+[dark] .ytdl-dropdown-menu,
+ytd-app[dark] .ytdl-dropdown-menu {
+  background: #212121;
+  color: #f1f1f1;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes ytdlFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dropdown Header */
+.ytdl-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.ytdl-menu-title {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ytdl-status-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ytdl-status-pill.online {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+}
+
+.ytdl-status-pill.offline {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+}
+
+/* Tabs */
+.ytdl-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  background: rgba(128, 128, 128, 0.1);
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.ytdl-tab-btn {
+  flex: 1;
+  padding: 6px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ytdl-tab-btn.active {
+  background: #ff0033;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Options Grid / List */
+.ytdl-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ytdl-option-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.08);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ytdl-option-item:hover {
+  background: rgba(255, 0, 51, 0.1);
+  border-color: rgba(255, 0, 51, 0.3);
+}
+
+.ytdl-opt-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ytdl-opt-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.2);
+  color: inherit;
+}
+
+/* Helper Offline Notice */
+.ytdl-offline-alert {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #e74c3c;
+}
+
+.ytdl-offline-alert code {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+/* Bottom Actions */
+.ytdl-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+  font-size: 12px;
+}
+
+.ytdl-footer-link {
+  color: #3ea6ff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ytdl-footer-link:hover {
+  text-decoration: underline;
+}
+
+/* Floating Toast Notification for Downloads */
+.ytdl-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  background: #1e1e1e;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 9999999;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+  animation: ytdlToastIn 0.25s ease-out;
+}
+
+@keyframes ytdlToastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ytdl-toast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ytdl-toast-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.ytdl-toast-close {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ytdl-toast-close:hover {
+  color: #fff;
+}
+
+.ytdl-toast-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.ytdl-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.ytdl-progress-fill {
+  height: 100%;
+  background: #ff0033;
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 3px;
+}
+
+.ytdl-progress-fill.completed {
+  background: #2ecc71;
+}
+
+.ytdl-toast-btn {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  padding: 6px 0;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.2s ease;
+}
+
+.ytdl-toast-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

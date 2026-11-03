@@ -1,0 +1,18 @@
+# Python virtual environments & bytecode
+backend/venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs & temp files
+*.log
+backend/downloads/
