@@ -1,0 +1,12 @@
+{
+  "name": "YouTube Video & Audio Downloader",
+  "description": "Download YouTube videos and MP3 audio directly from your GNOME top bar. Integrates with the local helper engine.",
+  "uuid": "yt-downloader@boopathi-10.github.com",
+  "shell-version": [
+    "45",
+    "46",
+    "47"
+  ],
+  "url": "https://github.com/boopathi-10/YT-video-downloder-extension",
+  "version": 1
+}

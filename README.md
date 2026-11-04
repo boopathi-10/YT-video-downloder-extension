@@ -14,6 +14,7 @@ A high-performance Chrome / Brave / Edge Manifest V3 extension and companion loc
 * **High-Quality Audio Extraction**: Converts directly to MP3 (320 kbps HQ, 192 kbps Standard, 128 kbps), original M4A/AAC, or lossless WAV with ID3 metadata.
 * **Live Progress Tracking**: Real-time progress bars showing download percentage, download speed (e.g., `12.5 MB/s`), and remaining ETA.
 * **1-Click Folder Access**: Open the downloaded files directly in your system file manager with one click.
+* **GNOME Shell Desktop Integration**: Includes a native GNOME 45/46/47 top-bar extension for Ubuntu and Linux desktops.
 * **Unbreakable Architecture**: Powered by `yt-dlp` and `ffmpeg`, keeping you immune to YouTube player script obfuscations.
 
 ---
@@ -27,7 +28,7 @@ YT-video-downloder-extension/
 │   ├── requirements.txt           # Dependencies (yt-dlp, fastapi, uvicorn)
 │   ├── run_backend.sh             # 1-click Linux/macOS launcher
 │   └── run_backend.py             # Cross-platform Python launcher
-├── extension/                     # Manifest V3 Browser Extension
+├── extension/                     # Manifest V3 Browser Extension (Chrome/Edge/Brave)
 │   ├── manifest.json              # Extension manifest
 │   ├── icons/                     # Icons (16, 32, 48, 128)
 │   ├── content/                   # In-page YouTube injection
@@ -39,6 +40,12 @@ YT-video-downloder-extension/
 │   │   └── popup.js               # Tab detection & download controls
 │   └── background/                # Service worker
 │       └── background.js          # Notifications & messaging
+├── gnome-extension/               # GNOME Shell Desktop Top-Bar Extension
+│   ├── metadata.json              # GNOME Extension UUID & supported versions
+│   ├── extension.js               # Top-bar indicator & clipboard integration
+│   ├── stylesheet.css             # GNOME theme styling
+│   ├── yt-downloader...zip        # Ready-to-upload package for extensions.gnome.org
+│   └── README.md                  # GNOME installation & publishing guide
 └── README.md
 ```
 
@@ -105,6 +112,13 @@ Downloads will be saved to: ~/Downloads
 2. The popup automatically identifies the video playing in your active tab.
 3. Select your desired format and click **Download Video** or **Download Audio (MP3)**.
 4. Monitor active downloads in the **Downloads** queue list.
+
+### Method 3: GNOME Top-Bar Extension (Linux / Ubuntu)
+
+1. Copy any YouTube video URL to your system clipboard.
+2. Click the download icon in your **GNOME top panel**.
+3. Select **Video (1080p)** or **Audio (MP3)** to download directly without opening a browser extension!
+4. See [`gnome-extension/README.md`](gnome-extension/README.md) for local installation & publishing to [extensions.gnome.org](https://extensions.gnome.org).
 
 ---
 
