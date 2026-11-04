@@ -46,6 +46,8 @@ YT-video-downloder-extension/
 │   ├── stylesheet.css             # GNOME theme styling
 │   ├── yt-downloader...zip        # Ready-to-upload package for extensions.gnome.org
 │   └── README.md                  # GNOME installation & publishing guide
+├── install_autostart.sh           # 1-click silent background auto-start installer
+├── uninstall_autostart.sh         # Auto-start service remover
 └── README.md
 ```
 
