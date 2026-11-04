@@ -72,6 +72,26 @@ function setupUI() {
     }
   });
 
+  // Clear Tasks History Button (Does NOT delete any actual files on disk)
+  const clearTasksBtn = document.getElementById("clear-tasks-btn");
+  if (clearTasksBtn) {
+    clearTasksBtn.addEventListener("click", async () => {
+      try {
+        await fetch(`${BACKEND_URL}/clear-tasks`, { method: "POST" });
+        const tasksContainer = document.getElementById("tasks-list");
+        const countBadge = document.getElementById("tasks-count");
+        if (tasksContainer) {
+          tasksContainer.innerHTML = '<div class="empty-tasks">✓ List cleared<br><span style="font-size: 10px; color: #888;">(Your downloaded files remain safe in your Downloads folder)</span></div>';
+        }
+        if (countBadge) {
+          countBadge.style.display = "none";
+        }
+      } catch (err) {
+        console.warn("Could not clear tasks:", err);
+      }
+    });
+  }
+
   // Custom URL Load
   fetchUrlBtn.addEventListener("click", async () => {
     const input = document.getElementById("custom-url-input");
@@ -245,6 +265,7 @@ async function loadTasks() {
   if (!isBackendOnline) return;
 
   const tasksContainer = document.getElementById("tasks-list");
+  const countBadge = document.getElementById("tasks-count");
 
   try {
     const res = await fetch(`${BACKEND_URL}/tasks`);
@@ -252,8 +273,14 @@ async function loadTasks() {
 
     const tasks = await res.json();
     if (!tasks || tasks.length === 0) {
-      tasksContainer.innerHTML = '<div class="empty-tasks">No active downloads</div>';
+      if (countBadge) countBadge.style.display = "none";
+      tasksContainer.innerHTML = '<div class="empty-tasks">No recent downloads</div>';
       return;
+    }
+
+    if (countBadge) {
+      countBadge.textContent = tasks.length;
+      countBadge.style.display = "inline-block";
     }
 
     tasksContainer.innerHTML = "";
@@ -262,6 +289,10 @@ async function loadTasks() {
       card.className = "task-card";
 
       const percent = Math.round(task.progress_percent || 0);
+      const isCompleted = task.status === "completed";
+      const isAudio = task.media_type === "audio";
+      const icon = isAudio ? "🎵" : "📹";
+
       let statusText = task.status;
       if (task.status === "downloading") {
         statusText = `${percent}%`;
@@ -269,26 +300,50 @@ async function loadTasks() {
       } else if (task.status === "processing") {
         statusText = "Converting / Merging...";
       } else if (task.status === "completed") {
-        statusText = "✅ Finished";
+        statusText = "✅ Ready";
       } else if (task.status === "error") {
         statusText = "❌ Failed";
       }
 
-      const isCompleted = task.status === "completed";
-      const icon = task.media_type === "audio" ? "🎵" : "📹";
+      const qualityBadge = `${task.quality || ""}${task.audio_format ? " " + task.audio_format.toUpperCase() : ""}`;
 
       card.innerHTML = `
-        <div class="task-card-title" title="${task.title || task.url}">
-          ${icon} ${task.title || task.filename || "Video"}
+        <div class="task-card-main">
+          <span class="task-media-icon">${icon}</span>
+          <div class="task-card-content">
+            <div class="task-card-title" title="${task.title || task.filename || "Video"}">
+              ${task.title || task.filename || "YouTube Media"}
+            </div>
+            <div class="task-card-meta">
+              <span class="task-format-tag">${qualityBadge}</span>
+              <span>${statusText}</span>
+              ${isCompleted && task.filepath ? `<button class="task-open-btn" title="Open file in player">▶ Play</button>` : ""}
+            </div>
+          </div>
         </div>
-        <div class="task-card-meta">
-          <span>${task.quality || ""} ${task.audio_format ? `(${task.audio_format.toUpperCase()})` : ""}</span>
-          <span>${statusText}</span>
-        </div>
-        <div class="task-bar-track">
-          <div class="task-bar-fill ${isCompleted ? 'completed' : ''}" style="width: ${percent}%;"></div>
-        </div>
+        ${!isCompleted ? `
+          <div class="task-bar-track">
+            <div class="task-bar-fill" style="width: ${percent}%;"></div>
+          </div>
+        ` : ""}
       `;
+
+      // Hook up direct play/open button if completed
+      const playBtn = card.querySelector(".task-open-btn");
+      if (playBtn && task.filepath) {
+        playBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          try {
+            await fetch(`${BACKEND_URL}/open-file`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ filepath: task.filepath })
+            });
+          } catch (err) {
+            console.warn("Could not open file:", err);
+          }
+        });
+      }
 
       tasksContainer.appendChild(card);
     });

@@ -420,6 +420,40 @@ def list_tasks():
     with tasks_lock:
         return list(tasks.values())[::-1]
 
+@app.post("/clear-tasks")
+def clear_tasks():
+    """Clears completed and failed tasks from the UI history.
+    Does NOT delete or modify any actual files on disk."""
+    with tasks_lock:
+        active_tasks = {
+            k: v for k, v in tasks.items()
+            if v.get("status") in ["pending", "downloading", "processing"]
+        }
+        tasks.clear()
+        tasks.update(active_tasks)
+    return {"success": True, "message": "History cleared"}
+
+class OpenFileRequest(BaseModel):
+    filepath: str
+
+@app.post("/open-file")
+def open_downloaded_file(req: OpenFileRequest):
+    """Opens the downloaded file directly with the default player/app."""
+    try:
+        target = Path(req.filepath)
+        if not target.exists():
+            raise HTTPException(status_code=404, detail="File does not exist")
+        system_os = platform.system()
+        if system_os == "Linux":
+            subprocess.Popen(["xdg-open", str(target)])
+        elif system_os == "Darwin":
+            subprocess.Popen(["open", str(target)])
+        elif system_os == "Windows":
+            os.startfile(str(target))
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/open-folder")
 def open_download_folder():
     """Open the downloads directory in the OS file explorer."""

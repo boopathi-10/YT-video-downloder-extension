@@ -357,10 +357,57 @@ body {
   align-items: center;
 }
 
+.tasks-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .tasks-title {
   font-size: 12px;
   font-weight: 600;
   color: #ccc;
+}
+
+.tasks-count-pill {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.tasks-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: #aaa;
+  font-size: 11px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(255, 0, 51, 0.15);
+  border-color: rgba(255, 0, 51, 0.4);
+  color: #ff4757;
+}
+
+.clear-icon {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
 }
 
 .link-btn {
@@ -378,25 +425,49 @@ body {
 .tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 180px;
+  gap: 6px;
+  max-height: 190px;
   overflow-y: auto;
 }
 
 .empty-tasks {
   text-align: center;
-  color: #666;
+  color: #777;
   font-size: 11px;
-  padding: 12px 0;
+  padding: 12px 6px;
+  line-height: 1.4;
 }
 
 .task-card {
-  background: #282828;
+  background: #252525;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  transition: background 0.15s ease;
+}
+
+.task-card:hover {
+  background: #2b2b2b;
+}
+
+.task-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.task-media-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.task-card-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .task-card-title {
@@ -411,8 +482,36 @@ body {
 .task-card-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 10px;
   color: #aaa;
+  margin-top: 3px;
+}
+
+.task-format-tag {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #ddd;
+}
+
+.task-open-btn {
+  background: transparent;
+  border: 1px solid rgba(62, 166, 255, 0.4);
+  border-radius: 3px;
+  color: #3ea6ff;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-open-btn:hover {
+  background: rgba(62, 166, 255, 0.2);
+  border-color: #3ea6ff;
 }
 
 .task-bar-track {
