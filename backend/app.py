@@ -20,6 +20,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
 
+# Automatically configure portable FFmpeg / FFprobe if not found in system PATH
+# This ensures zero-friction operation on macOS, Windows, and Linux out-of-the-box!
+try:
+    if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
+        import static_ffmpeg
+        static_ffmpeg.add_paths()
+        print("✅ Portable FFmpeg and FFprobe configured automatically.")
+except Exception as _e:
+    print(f"Notice: Portable FFmpeg loader status: {_e}")
+
 app = FastAPI(title="YouTube Downloader Helper", version="1.0.0")
 
 # Enable CORS for Chrome Extensions and local tools
@@ -52,8 +62,15 @@ tasks_lock = threading.Lock()
 tasks: Dict[str, Dict[str, Any]] = {}
 
 def check_ffmpeg() -> bool:
-    """Check if ffmpeg is available in system PATH."""
-    return shutil.which("ffmpeg") is not None
+    """Check if ffmpeg is available in system PATH or via portable binaries."""
+    if shutil.which("ffmpeg") is not None:
+        return True
+    try:
+        import static_ffmpeg
+        static_ffmpeg.add_paths()
+        return shutil.which("ffmpeg") is not None
+    except Exception:
+        return False
 
 def ensure_universal_video_mp4(filepath: str) -> None:
     """
@@ -259,6 +276,9 @@ def run_download_worker(task_id: str, req: DownloadRequest):
             elif status == "finished":
                 current_task["status"] = "processing"
 
+    ffmpeg_bin = shutil.which("ffmpeg")
+    ffmpeg_dir = str(Path(ffmpeg_bin).parent) if ffmpeg_bin else None
+
     ydl_opts: Dict[str, Any] = {
         "outtmpl": str(target_dir / "%(title)s [%(id)s].%(ext)s"),
         "progress_hooks": [progress_hook],
@@ -267,6 +287,8 @@ def run_download_worker(task_id: str, req: DownloadRequest):
         "no_warnings": True,
         "nocheckcertificate": True,
     }
+    if ffmpeg_dir:
+        ydl_opts["ffmpeg_location"] = ffmpeg_dir
 
     try:
         if req.media_type == "audio":

@@ -59,7 +59,9 @@ YT-video-downloder-extension/
 
 The local helper server performs video stream downloading and FFmpeg audio/video muxing.
 
-#### Option A: One-Click Auto-Start in Background (Recommended)
+> **Zero Manual Setup**: Portable FFmpeg and FFprobe are bundled and configured automatically across macOS (Apple Silicon M1/M2/M3/M4 & Intel), Windows, and Linux. Users do not need to install Homebrew or FFmpeg manually!
+
+#### Option A: One-Click Auto-Start in Background (Linux / Ubuntu)
 Run this command once. The helper will run silently in the background and automatically start whenever you turn on your PC (no open terminal required!):
 
 ```bash

@@ -20,11 +20,9 @@ fi
 
 # Check FFmpeg
 if command -v ffmpeg &> /dev/null; then
-    echo "✅ FFmpeg detected: $(ffmpeg -version | head -n 1)"
+    echo "✅ System FFmpeg detected: $(ffmpeg -version 2>/dev/null | head -n 1)"
 else
-    echo "⚠️ Warning: ffmpeg is not found in PATH."
-    echo "   High-resolution 1080p/4K video merging & MP3 audio extraction require ffmpeg."
-    echo "   Install on Ubuntu/Debian: sudo apt-get install -y ffmpeg"
+    echo "📦 System FFmpeg not in PATH. Automatic portable FFmpeg will be loaded (zero installation required)."
 fi
 
 # Create venv if not present
