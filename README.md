@@ -55,9 +55,21 @@ YT-video-downloder-extension/
 
 ### Step 1: Start the Local Helper Server
 
-The local helper server performs the video stream downloading and FFmpeg audio/video muxing.
+The local helper server performs video stream downloading and FFmpeg audio/video muxing.
 
-In your terminal, navigate to the project directory and run:
+#### Option A: One-Click Auto-Start in Background (Recommended)
+Run this command once. The helper will run silently in the background and automatically start whenever you turn on your PC (no open terminal required!):
+
+```bash
+cd YT-video-downloder-extension
+./install_autostart.sh
+```
+
+* To check status: `systemctl --user status yt-downloader`
+* To stop or remove: `./uninstall_autostart.sh`
+
+#### Option B: Manual Terminal Run
+If you prefer running it manually in an active terminal:
 
 ```bash
 cd YT-video-downloder-extension
@@ -72,8 +84,6 @@ You will see:
 🚀 Starting server at http://127.0.0.1:8765
 Downloads will be saved to: ~/Downloads
 ```
-
-> **Note**: Keep this terminal open while you download videos.
 
 ---
 
