@@ -1,13 +1,35 @@
 /**
  * YouTube Downloader - Popup Script
+ * Uses background service worker bridge to bypass Mixed Content / Private Network restrictions.
  */
-
-const BACKEND_URL = "http://127.0.0.1:8765";
 
 let currentVideoUrl = "";
 let currentMediaType = "video"; // "video" or "audio"
 let isBackendOnline = false;
 let pollingInterval = null;
+
+// Bridge helper to communicate with backend via background service worker
+function callBackend(endpoint, method = "GET", body = null) {
+  return new Promise((resolve) => {
+    if (!chrome.runtime || !chrome.runtime.sendMessage) {
+      return resolve({ ok: false, error: "Extension context not available" });
+    }
+    chrome.runtime.sendMessage(
+      {
+        action: "BACKEND_FETCH",
+        endpoint: endpoint,
+        method: method,
+        body: body
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          return resolve({ ok: false, error: chrome.runtime.lastError.message });
+        }
+        resolve(response || { ok: false, error: "No response from background service worker" });
+      }
+    );
+  });
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
   setupUI();
@@ -66,7 +88,10 @@ function setupUI() {
   // Open Folder
   openFolderBtn.addEventListener("click", async () => {
     try {
-      await fetch(`${BACKEND_URL}/open-folder`, { method: "POST" });
+      const res = await callBackend("/open-folder", "POST");
+      if (!res || !res.ok) {
+        alert("Please start the local helper server first: ./backend/run_backend.sh");
+      }
     } catch (e) {
       alert("Please start the local helper server first: ./backend/run_backend.sh");
     }
@@ -77,7 +102,7 @@ function setupUI() {
   if (clearTasksBtn) {
     clearTasksBtn.addEventListener("click", async () => {
       try {
-        await fetch(`${BACKEND_URL}/clear-tasks`, { method: "POST" });
+        await callBackend("/clear-tasks", "POST");
         const tasksContainer = document.getElementById("tasks-list");
         const countBadge = document.getElementById("tasks-count");
         if (tasksContainer) {
@@ -109,8 +134,8 @@ async function checkBackendStatus() {
   const offlineBanner = document.getElementById("offline-banner");
 
   try {
-    const res = await fetch(`${BACKEND_URL}/health`, { method: "GET" });
-    if (res.ok) {
+    const res = await callBackend("/health", "GET");
+    if (res && res.ok && res.data && res.data.status === "ok") {
       isBackendOnline = true;
       indicator.className = "status-indicator online";
       indicator.querySelector(".status-text").textContent = "Helper Online";
@@ -171,9 +196,9 @@ async function fetchVideoMetadata(url, fallbackTitle) {
   }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/info?url=${encodeURIComponent(url)}`);
-    if (res.ok) {
-      const data = await res.json();
+    const res = await callBackend(`/info?url=${encodeURIComponent(url)}`, "GET");
+    if (res && res.ok && res.data) {
+      const data = res.data;
       titleEl.textContent = data.title;
       authorEl.textContent = data.uploader || "YouTube";
       durationEl.textContent = data.duration || "--:--";
@@ -235,22 +260,18 @@ async function handleDownload() {
   downloadBtn.style.opacity = "0.7";
 
   try {
-    const res = await fetch(`${BACKEND_URL}/download`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        url: currentVideoUrl,
-        media_type: currentMediaType,
-        quality: quality,
-        audio_format: audioFormat
-      })
+    const res = await callBackend("/download", "POST", {
+      url: currentVideoUrl,
+      media_type: currentMediaType,
+      quality: quality,
+      audio_format: audioFormat
     });
 
-    if (res.ok) {
+    if (res && res.ok) {
       loadTasks();
     } else {
-      const err = await res.json();
-      alert(`Download failed: ${err.detail || "Error"}`);
+      const err = res?.data?.detail || res?.error || "Error";
+      alert(`Download failed: ${err}`);
     }
   } catch (err) {
     alert("Error sending download request: " + err.message);
@@ -268,10 +289,10 @@ async function loadTasks() {
   const countBadge = document.getElementById("tasks-count");
 
   try {
-    const res = await fetch(`${BACKEND_URL}/tasks`);
-    if (!res.ok) return;
+    const res = await callBackend("/tasks", "GET");
+    if (!res || !res.ok || !res.data) return;
 
-    const tasks = await res.json();
+    const tasks = res.data;
     if (!tasks || tasks.length === 0) {
       if (countBadge) countBadge.style.display = "none";
       tasksContainer.innerHTML = '<div class="empty-tasks">No recent downloads</div>';
@@ -334,11 +355,7 @@ async function loadTasks() {
         playBtn.addEventListener("click", async (e) => {
           e.stopPropagation();
           try {
-            await fetch(`${BACKEND_URL}/open-file`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ filepath: task.filepath })
-            });
+            await callBackend("/open-file", "POST", { filepath: task.filepath });
           } catch (err) {
             console.warn("Could not open file:", err);
           }

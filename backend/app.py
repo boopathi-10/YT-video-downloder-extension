@@ -41,6 +41,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Enable Private Network Access headers for modern Chromium (PNA RFC standard)
+@app.middleware("http")
+async def add_private_network_headers(request, call_next):
+    if request.method == "OPTIONS" and "access-control-request-private-network" in request.headers:
+        from fastapi.responses import Response
+        res = Response(status_code=200)
+        res.headers["Access-Control-Allow-Origin"] = "*"
+        res.headers["Access-Control-Allow-Methods"] = "*"
+        res.headers["Access-Control-Allow-Headers"] = "*"
+        res.headers["Access-Control-Allow-Private-Network"] = "true"
+        return res
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Private-Network"] = "true"
+    return response
+
 # Determine default downloads directory
 def get_default_download_dir() -> Path:
     home = Path.home()

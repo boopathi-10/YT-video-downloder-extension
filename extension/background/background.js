@@ -1,13 +1,13 @@
 /**
  * Background Service Worker
- * Handles lifecycle events, notifications, and cross-component messaging.
+ * Handles lifecycle events, notifications, and acts as an elevated API bridge
+ * between YouTube content script / popup and the local helper server.
  */
 
 const BACKEND_URL = "http://127.0.0.1:8765";
 
 chrome.runtime.onInstalled.addListener((details) => {
   console.log("[YT Downloader] Extension installed:", details.reason);
-  // Set initial badge status
   checkBackendStatus();
 });
 
@@ -24,6 +24,44 @@ async function checkBackendStatus() {
     // Backend offline
   }
   return false;
+}
+
+// Elevated fetch proxy to avoid Mixed Content / PNA blocks from in-page scripts
+async function handleBackendFetch(request, sendResponse) {
+  try {
+    const endpoint = request.endpoint.startsWith("/") ? request.endpoint : `/${request.endpoint}`;
+    const url = `${BACKEND_URL}${endpoint}`;
+    const options = {
+      method: request.method || "GET",
+      headers: {}
+    };
+
+    if (request.body) {
+      options.headers["Content-Type"] = "application/json";
+      options.body = typeof request.body === "string" ? request.body : JSON.stringify(request.body);
+    }
+
+    const res = await fetch(url, options);
+    let data = null;
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      data = await res.json().catch(() => null);
+    } else {
+      data = await res.text().catch(() => null);
+    }
+
+    sendResponse({
+      ok: res.ok,
+      status: res.status,
+      data: data
+    });
+  } catch (err) {
+    sendResponse({
+      ok: false,
+      status: 0,
+      error: err.message || "Failed to reach backend helper"
+    });
+  }
 }
 
 // Listen for messages from content script or popup
@@ -46,6 +84,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     checkBackendStatus().then(online => {
       sendResponse({ online });
     });
+    return true; // Keep message channel open for async response
+  }
+
+  if (request.action === "BACKEND_FETCH") {
+    handleBackendFetch(request, sendResponse);
     return true; // Keep message channel open for async response
   }
 });

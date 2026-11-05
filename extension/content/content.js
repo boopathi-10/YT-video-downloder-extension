@@ -1,20 +1,43 @@
 /**
  * YouTube Video & Audio Downloader - Content Script
  * Injects modern download button directly into YouTube's action bar.
+ * Uses background service worker bridge to bypass Mixed Content / Private Network restrictions.
  */
 
 (function () {
-  const BACKEND_URL = "http://127.0.0.1:8765";
   let activeTab = "video"; // "video" or "audio"
   let isBackendOnline = false;
   let observer = null;
 
+  // Bridge helper to communicate with backend via background service worker
+  // This bypasses Chrome's Mixed Content & Private Network restrictions on HTTPS YouTube pages
+  function callBackend(endpoint, method = "GET", body = null) {
+    return new Promise((resolve) => {
+      if (!chrome.runtime || !chrome.runtime.sendMessage) {
+        return resolve({ ok: false, error: "Extension context invalidated. Please refresh the page." });
+      }
+      chrome.runtime.sendMessage(
+        {
+          action: "BACKEND_FETCH",
+          endpoint: endpoint,
+          method: method,
+          body: body
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            return resolve({ ok: false, error: chrome.runtime.lastError.message });
+          }
+          resolve(response || { ok: false, error: "No response from background service worker" });
+        }
+      );
+    });
+  }
+
   // Check helper status
   async function checkBackend() {
     try {
-      const res = await fetch(`${BACKEND_URL}/health`, { method: "GET" });
-      if (res.ok) {
-        const data = await res.json();
+      const res = await callBackend("/health", "GET");
+      if (res && res.ok && res.data && res.data.status === "ok") {
         isBackendOnline = true;
         return true;
       }
@@ -198,7 +221,10 @@
       folderLink.addEventListener("click", async (e) => {
         e.stopPropagation();
         try {
-          await fetch(`${BACKEND_URL}/open-folder`, { method: "POST" });
+          const res = await callBackend("/open-folder", "POST");
+          if (!res || !res.ok) {
+            alert("Please start the local helper first: ./backend/run_backend.sh");
+          }
         } catch (err) {
           alert("Please start the local helper first: ./backend/run_backend.sh");
         }
@@ -272,24 +298,20 @@
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/download`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: videoUrl,
-          media_type: params.media_type,
-          quality: params.quality,
-          audio_format: params.audio_format || "mp3"
-        })
+      const res = await callBackend("/download", "POST", {
+        url: videoUrl,
+        media_type: params.media_type,
+        quality: params.quality,
+        audio_format: params.audio_format || "mp3"
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        alert(`Download failed: ${err.detail || "Server error"}`);
+      if (!res || !res.ok) {
+        const errMsg = res?.data?.detail || res?.error || "Server error";
+        alert(`Download failed: ${errMsg}`);
         return;
       }
 
-      const data = await res.json();
+      const data = res.data;
       showDownloadToast(data.task_id, pageTitle, params.media_type);
     } catch (err) {
       console.error("[YT Downloader] Download start error:", err);
@@ -339,7 +361,7 @@
     if (openBtn) {
       openBtn.addEventListener("click", async () => {
         try {
-          await fetch(`${BACKEND_URL}/open-folder`, { method: "POST" });
+          await callBackend("/open-folder", "POST");
         } catch (e) {}
       });
     }
@@ -347,13 +369,17 @@
     // Polling interval
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/progress/${taskId}`);
-        if (!res.ok) {
-          clearInterval(interval);
+        const res = await callBackend(`/progress/${taskId}`, "GET");
+        if (!res || !res.ok) {
+          if (res && res.status === 404) {
+            clearInterval(interval);
+          }
           return;
         }
 
-        const task = await res.json();
+        const task = res.data;
+        if (!task) return;
+
         const percent = task.progress_percent || 0;
         fillEl.style.width = `${percent}%`;
         percentEl.textContent = `${Math.round(percent)}%`;
@@ -430,6 +456,6 @@
     setupObserver();
   }
 
-  // Check helper status in background
+  // Check helper status via background proxy
   checkBackend();
 })();
